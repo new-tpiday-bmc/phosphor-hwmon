@@ -451,6 +451,10 @@ void MainLoop::run()
                             hwmon::entry::cinput,
                             sysfs::hwmonio::retries,
                             sysfs::hwmonio::delay);
+                    auto coefficient = getEnv("COEFFICIENT", i.first);
+                    if (coefficient.length() > 0) {
+                        value *= std::stod(coefficient);
+                    }
 
                     value = adjustValue(i.first, value);
 
