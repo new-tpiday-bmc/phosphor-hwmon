@@ -69,6 +69,7 @@ struct valueAdjust
 {
     double gain = 1.0;
     int offset = 0;
+    double coefficient = 1.0;
 };
 
 // Store the valueAdjust for sensors
@@ -170,6 +171,9 @@ int adjustValue(const SensorSet::key_type& sensor, int value)
         value = static_cast<decltype(value)>(
                     static_cast<double>(value) * it->second.gain
                         + it->second.offset);
+        value = static_cast<decltype(value)>(
+                    static_cast<double>(value) * it->second.coefficient
+                );
     }
     return value;
 }
@@ -229,6 +233,12 @@ auto addValue(const SensorSet::key_type& sensor,
     if (!offset.empty())
     {
         sensorAdjusts[sensor].offset = std::stoi(offset);
+    }
+
+    auto coefficient = getEnv("COEFFICIENT", sensor);
+    if (!coefficient.empty())
+    {
+        sensorAdjusts[sensor].coefficient = std::stod(coefficient);
     }
 
     val = adjustValue(sensor, val);
@@ -451,10 +461,6 @@ void MainLoop::run()
                             hwmon::entry::cinput,
                             sysfs::hwmonio::retries,
                             sysfs::hwmonio::delay);
-                    auto coefficient = getEnv("COEFFICIENT", i.first);
-                    if (coefficient.length() > 0) {
-                        value *= std::stod(coefficient);
-                    }
 
                     value = adjustValue(i.first, value);
 
